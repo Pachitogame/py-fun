@@ -19,9 +19,9 @@ setup(
     url="https://github.com/username/my_project",
 
     # Package structure configuration for src/ layout
-    package_dir={"": "src"},
-    packages=find_packages(where="src"),
-    python_requires=">=3.8",
+    packages=find_packages(include=["src", "src.*"]),
+    py_modules=["main"],
+    python_requires=">=3.12",
 
     # Dependencies (packages required at runtime)
     install_requires=[
