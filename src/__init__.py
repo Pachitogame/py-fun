@@ -1,6 +1,8 @@
-# __init__.py executes when the package (this folder) is imported for the
-# first time from another module. It is good practice to not include logic
-# in __init__.py, but what is exported from the package.
-# 
-from .calculator import Calculator, main
-# from .collections import Collection
+from .calculator import Calculator, main as run_calculator
+from .collections import Collection, main as run_collections
+
+
+def main():
+    """Run both assignment demonstrations."""
+    run_calculator()
+    run_collections()

@@ -49,7 +49,7 @@ class Collection(Generic[T]):
         Returns:
             True if element is in the collection, False otherwise.
         """
-        return False
+        return item in self
 
     def size(self) -> int:
         """
@@ -58,7 +58,7 @@ class Collection(Generic[T]):
         Returns:
             the number of items in the collection.
         """
-        return 0
+        return len(self)
 
     @classmethod
     def zip(cls, l1: 'Collection[list]', l2: 'Collection[list]') -> 'Collection[tuple]':
@@ -72,46 +72,58 @@ class Collection(Generic[T]):
         Returns:
             Collection of pairs zipped from each input Collection.
         """
-        return []
+        return cls(*zip(l1, l2))
 
-    def pset(_self) -> set[set[T]]:
-        """
-        Return the power set of this Collection using backtracking.
+    def pset(self) -> list[set]:
+        """Return all distinct subsets in exclusion-first order."""
+        return list(self.pset_gen())
 
-        Returns:
-            The power set of this Collection.
-        """
-        return set()
+    def pset_gen(self) -> Iterator[set]:
+        """Yield each subset once, choosing whether to include each value."""
+        items = list(dict.fromkeys(tuple(x) if isinstance(x, list) else x for x in self))
+        subset = set()
 
-    def pset_gen(self) -> Iterator['set[T]']:
-        """
-        Generator that yields each subset using backtracking.
-        
-        Returns:
-            Generator object for the power set of this Collection.
-        """
+        def visit(index):
+            if index == len(items):
+                yield subset.copy()
+                return
+            yield from visit(index + 1)
+            subset.add(items[index])
+            yield from visit(index + 1)
+            subset.remove(items[index])
+
+        yield from visit(0)
 
     def perm(self) -> list[list[T]]:
-        """
-        Return all permutations of this Collection.
-
-        Returns:
-            The list of permutations of this Collection.
-        """
-        return []
+        """Return all full-length positional permutations."""
+        return list(self.perm_gen())
 
     def perm_gen(self) -> Iterator[list[T]]:
-        """"
-        Generator that yields permutations using backtracking.
+        """Yield one ordering at a time, treating equal positions separately."""
+        items = list(self)
+        used = [False] * len(items)
+        order = []
 
-        Returns:
-            Generator object for the list of permutations of this Collection.
-        """
-        return []
+        def visit():
+            if len(order) == len(items):
+                yield order.copy()
+                return
+            for index, item in enumerate(items):
+                if not used[index]:
+                    used[index] = True
+                    order.append(item)
+                    yield from visit()
+                    order.pop()
+                    used[index] = False
 
+        yield from visit()
 
     def __contains__(self, item: Any) -> bool:
         """Checks if an item or subset exists in the collection (in-operator)."""
+        if isinstance(item, (set, dict)):
+            item = frozenset(item)
+        elif isinstance(self._items, set) and isinstance(item, list):
+            item = tuple(item)
         return item in self._items
 
     def __len__(self) -> int:
